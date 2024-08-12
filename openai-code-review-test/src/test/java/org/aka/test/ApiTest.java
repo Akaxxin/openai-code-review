@@ -12,5 +12,8 @@ public class ApiTest {
         System.out.println(Integer.parseInt("aaa1"));
         System.out.println(Integer.parseInt("aaa2"));
         System.out.println(Integer.parseInt("aaa3"));
+        System.out.println(Integer.parseInt("aaa4"));
+        System.out.println(Integer.parseInt("aaa5"));
+        System.out.println(Integer.parseInt("aaa6"));
     }
 }
