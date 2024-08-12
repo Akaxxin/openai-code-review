@@ -1,7 +1,9 @@
 package org.aka.sdk;
 
 import com.alibaba.fastjson2.JSON;
+import org.aka.sdk.domain.model.ChatCompletionRequest;
 import org.aka.sdk.domain.model.ChatCompletionSyncResponse;
+import org.aka.sdk.domain.model.Model;
 import org.aka.sdk.types.utils.BearerTokenUtils;
 
 import java.io.*;
@@ -9,6 +11,9 @@ import java.net.HttpURLConnection;
 import java.net.ProtocolException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+
+import static com.sun.java.accessibility.util.GUIInitializedMulticaster.add;
 
 public class OpenAiCodeReview {
     public static void main(String[] args) throws Exception {
@@ -51,18 +56,20 @@ public class OpenAiCodeReview {
 
 
 
-        String jsonInpuString = "{"
-                + "\"model\":\"glm-4-flash\","
-                + "\"messages\": ["
-                + "    {"
-                + "        \"role\": \"user\","
-                + "        \"content\": \"你是一个高级编程架构师，精通各类场景方案、架构设计和编程语言请，请您根据git diff记录，对代码做出评审。代码为: " + diffCode + "\""
-                + "    }"
-                + "]"
-                + "}";
 
-        try(OutputStream os = connection.getOutputStream()){
-            byte[] input = jsonInpuString.getBytes(StandardCharsets.UTF_8);
+        ChatCompletionRequest chatCompletionRequest = new ChatCompletionRequest();
+        chatCompletionRequest.setModel(Model.GLM_4_FLASH.getCode());
+        chatCompletionRequest.setMessages(new ArrayList<ChatCompletionRequest.Prompt>() {
+            private static final long serialVersionUID = -7988151926241837899L;
+
+            {
+                add(new ChatCompletionRequest.Prompt("user", "你是一个高级编程架构师，精通各类场景方案、架构设计和编程语言请，请您根据git diff记录，对代码做出评审。代码如下:"));
+                add(new ChatCompletionRequest.Prompt("user", diffCode));
+            }
+        });
+
+        try (OutputStream os = connection.getOutputStream()) {
+            byte[] input = JSON.toJSONString(chatCompletionRequest).getBytes(StandardCharsets.UTF_8);
             os.write(input);
         }
 
@@ -73,17 +80,19 @@ public class OpenAiCodeReview {
         String inputLine;
 
         StringBuilder content = new StringBuilder();
-        while ((inputLine = in.readLine()) != null){
+        while ((inputLine = in.readLine()) != null) {
             content.append(inputLine);
         }
 
         in.close();
         connection.disconnect();
 
+        System.out.println("评审结果：" + content.toString());
+
         ChatCompletionSyncResponse response = JSON.parseObject(content.toString(), ChatCompletionSyncResponse.class);
         return response.getChoices().get(0).getMessage().getContent();
-
     }
+
 
 
 
