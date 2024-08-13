@@ -3,8 +3,10 @@ package org.aka.sdk;
 import com.alibaba.fastjson2.JSON;
 import org.aka.sdk.domain.model.ChatCompletionRequest;
 import org.aka.sdk.domain.model.ChatCompletionSyncResponse;
+import org.aka.sdk.domain.model.Message;
 import org.aka.sdk.domain.model.Model;
 import org.aka.sdk.types.utils.BearerTokenUtils;
+import org.aka.sdk.types.utils.WXAccessTokenUtils;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
@@ -18,6 +20,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Random;
+import java.util.Scanner;
 import java.util.logging.SimpleFormatter;
 
 public class OpenAiCodeReview {
@@ -47,11 +50,50 @@ public class OpenAiCodeReview {
         String log = codeReview(diffCode.toString());
         System.out.println("code review"+log);
 
+
+        //3.写入评审日志
         String logURL = writeLong(token,log);
         System.out.println("writeLog"+logURL);
 
+
+        //4.消息通知
+        System.out.println("pushMessage"+logURL);
+        pushMessage(logURL);
     }
 
+    private static void pushMessage(String logUrl){
+        String accessToken = WXAccessTokenUtils.getAccessToken();
+        System.out.println(accessToken);
+        Message message =new Message();
+        message.put("project","big-market");
+        message.put("review","feat:新加功能");
+        message.setUrl(logUrl);
+
+        String url = String.format("https://api.weixin.qq.com/cgi-bin/message/template/send?access_token=%s", accessToken);
+        sendPostRequest(url,JSON.toJSONString(message));
+    }
+    private static void sendPostRequest(String urlString, String jsonBody) {
+        try {
+            URL url = new URL(urlString);
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            conn.setRequestMethod("POST");
+            conn.setRequestProperty("Content-Type", "application/json; utf-8");
+            conn.setRequestProperty("Accept", "application/json");
+            conn.setDoOutput(true);
+
+            try (OutputStream os = conn.getOutputStream()) {
+                byte[] input = jsonBody.getBytes(StandardCharsets.UTF_8);
+                os.write(input, 0, input.length);
+            }
+
+            try (Scanner scanner = new Scanner(conn.getInputStream(), StandardCharsets.UTF_8.name())) {
+                String response = scanner.useDelimiter("\\A").next();
+                System.out.println(response);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
     private static String codeReview(String diffCode) throws Exception {
         String apiKeySecret = "331b79e5f1eae628e46d0c8d6ffae719.nNgl5YZ4SkIV6Ihp";
         String token = BearerTokenUtils.getToken(apiKeySecret);
