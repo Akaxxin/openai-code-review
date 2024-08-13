@@ -47,7 +47,8 @@ public class OpenAiCodeReview {
         String log = codeReview(diffCode.toString());
         System.out.println("code review"+log);
 
-        writeLong(token,log);
+        String logURL = writeLong(token,log);
+        System.out.println("writeLog"+logURL);
 
     }
 
@@ -121,7 +122,7 @@ public class OpenAiCodeReview {
             writer.write(log);
         }
         git.add().addFilepattern(dateFolderName+"/"+fileName).call();
-        git.commit().setMessage("Add new file").call();
+        git.commit().setMessage("Add new file via GitHub Action").call();
         git.push().setCredentialsProvider(new UsernamePasswordCredentialsProvider(token, "")).call();
 
         System.out.println("Changes have been pushed to the repository.");
