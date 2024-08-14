@@ -1,9 +1,11 @@
-package org.aka.sdk.domain.model;
+package org.aka.sdk.infrastructure.openai.dto;
 
+
+import org.aka.sdk.domain.model.Model;
 
 import java.util.List;
 
-public class ChatCompletionRequest {
+public class ChatCompletionRequestDTO extends ChatCompletionSyncResponseDTO {
 
     private String model = Model.GLM_4_FLASH.getCode();
     private List<Prompt> messages;
