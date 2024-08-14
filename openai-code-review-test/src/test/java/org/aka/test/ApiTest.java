@@ -9,7 +9,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 @SpringBootTest
 public class ApiTest {
     public void test(){
-        System.out.println(Integer.parseInt("!!!93333333899902"));
+        System.out.println(Integer.parseInt("!!!93333333333899902"));
 
     }
 }
